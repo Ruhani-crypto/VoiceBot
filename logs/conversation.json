@@ -1,0 +1,42 @@
+[
+  {
+    "role": "User",
+    "message": "नमस्ते।",
+    "timestamp": "2026-05-24T17:38:34.977204"
+  },
+  {
+    "role": "Bot",
+    "message": "Namaste! Mera naam VoiceBot hai. Main aapki kaise help kar sakta hoon? / Meeru ela untaro?",
+    "timestamp": "2026-05-24T17:38:34.977204"
+  },
+  {
+    "role": "User",
+    "message": "डेमो चाहिए।",
+    "timestamp": "2026-05-24T17:38:53.478276"
+  },
+  {
+    "role": "Bot",
+    "message": "Sure! Meeku software demo schedule chestanu. Aapko kab convenient hai? Monday ya Tuesday? / Aapko kaunsa time suit karega?",
+    "timestamp": "2026-05-24T17:38:53.478276"
+  },
+  {
+    "role": "User",
+    "message": "मैं हूं जियान मेरा गला है भोसरी ला",
+    "timestamp": "2026-05-24T17:39:53.025491"
+  },
+  {
+    "role": "Bot",
+    "message": "Bahut accha! Aapka naam sunke khushi hui. Aap kya help chahte hain? / Meeru cheppindi vinataniki santhosham aindi!",
+    "timestamp": "2026-05-24T17:39:53.025491"
+  },
+  {
+    "role": "User",
+    "message": "इक वारि आ भी जयराम इक वारि आ",
+    "timestamp": "2026-05-24T17:40:11.574430"
+  },
+  {
+    "role": "Bot",
+    "message": "Main samajh gaya! Aap aur kuch jaanna chahte hain? Demo, pricing, ya contact info ke liye poochh sakte hain. / Demo, pricing, contact info — emaina adugandi!",
+    "timestamp": "2026-05-24T17:40:11.574430"
+  }
+]

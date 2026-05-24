@@ -1,0 +1,8 @@
+User: नमस्ते।
+Bot: Namaste! Mera naam VoiceBot hai. Main aapki kaise help kar sakta hoon? / Meeru ela untaro?
+User: डेमो चाहिए।
+Bot: Sure! Meeku software demo schedule chestanu. Aapko kab convenient hai? Monday ya Tuesday? / Aapko kaunsa time suit karega?
+User: मैं हूं जियान मेरा गला है भोसरी ला
+Bot: Bahut accha! Aapka naam sunke khushi hui. Aap kya help chahte hain? / Meeru cheppindi vinataniki santhosham aindi!
+User: इक वारि आ भी जयराम इक वारि आ
+Bot: Main samajh gaya! Aap aur kuch jaanna chahte hain? Demo, pricing, ya contact info ke liye poochh sakte hain. / Demo, pricing, contact info — emaina adugandi!

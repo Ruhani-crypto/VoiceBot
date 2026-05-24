@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VoiceBot — Hindi + Telugu AI Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #C8102E;
+      --red-dark: #9b0a21;
+      --red-glow: rgba(200,16,46,0.25);
+      --bg: #0d0d0f;
+      --surface: #141417;
+      --surface2: #1c1c21;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0eff4;
+      --muted: #7a798a;
+      --user-bubble: #1e1e28;
+      --bot-bubble: rgba(200,16,46,0.12);
+      --bot-border: rgba(200,16,46,0.3);
+      --font: 'Sora', sans-serif;
+      --radius: 18px;
+      --radius-sm: 10px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    .bg-orbs {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      animation: drift 20s ease-in-out infinite alternate;
+    }
+    .orb-1 { width:400px; height:400px; background:var(--red); top:-100px; right:-100px; animation-delay:0s; }
+    .orb-2 { width:300px; height:300px; background:#6b21a8; bottom:-80px; left:-80px; animation-delay:-7s; }
+    .orb-3 { width:200px; height:200px; background:var(--red); bottom:30%; right:20%; animation-delay:-14s; opacity:0.08; }
+
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.05); }
+    }
+
+    /* Header */
+    header {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(13,13,15,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px var(--red-glow);
+    }
+    .logo-text h1 {
+      font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
+    }
+    .logo-text span {
+      font-size: 11px; color: var(--muted); font-weight: 400;
+    }
+    .header-status {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--muted);
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.6; transform:scale(0.85); }
+    }
+
+    /* Main layout */
+    .app {
+      position: relative; z-index: 5;
+      flex: 1; display: flex;
+      height: calc(100vh - 62px);
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 20px 16px;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .sidebar h3 {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+    .tip-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .tip-card .tip-phrase {
+      color: var(--text);
+      font-style: italic;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .lang-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+    .lang-hi { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+    .lang-te { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .lang-mix { background: rgba(200,16,46,0.12); color: #f87171; border: 1px solid rgba(200,16,46,0.3); }
+
+    .logs-section { display: flex; flex-direction: column; gap: 8px; }
+    .log-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .log-btn:hover { border-color: var(--red); color: var(--text); background: var(--bot-bubble); }
+    .log-btn .icon { font-size: 15px; }
+    #clearLogsBtn { color: #f87171; }
+    #clearLogsBtn:hover { border-color: #f87171; background: rgba(248,113,113,0.08); }
+
+    /* Chat area */
+    .chat-area {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Transcript bar */
+    .transcript-bar {
+      padding: 10px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      min-height: 44px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .transcript-label {
+      font-size: 11px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    #liveTranscript {
+      font-size: 13.5px; color: var(--text);
+      font-style: italic;
+      flex: 1;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    #liveTranscript.active { opacity: 1; color: #fbbf24; }
+
+    /* Messages */
+    #messagesContainer {
+      flex: 1; overflow-y: auto;
+      padding: 24px 20px;
+      display: flex; flex-direction: column; gap: 16px;
+      scroll-behavior: smooth;
+    }
+    #messagesContainer::-webkit-scrollbar { width: 4px; }
+    #messagesContainer::-webkit-scrollbar-track { background: transparent; }
+    #messagesContainer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .msg {
+      display: flex; gap: 10px;
+      animation: fadeUp 0.3s ease forwards;
+      max-width: 75%;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg.bot  { align-self: flex-start; }
+
+    .msg-avatar {
+      width: 34px; height: 34px; border-radius: 10px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .msg.user .msg-avatar { background: var(--surface2); border: 1px solid var(--border); }
+    .msg.bot .msg-avatar {
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      box-shadow: 0 0 12px var(--red-glow);
+    }
+
+    .msg-body { display: flex; flex-direction: column; gap: 4px; }
+    .msg.user .msg-body { align-items: flex-end; }
+
+    .msg-bubble {
+      padding: 11px 15px;
+      border-radius: 14px;
+      font-size: 14px; line-height: 1.55;
+      word-break: break-word;
+    }
+    .msg.user .msg-bubble {
+      background: var(--user-bubble);
+      border: 1px solid var(--border);
+      border-bottom-right-radius: 4px;
+    }
+    .msg.bot .msg-bubble {
+      background: var(--bot-bubble);
+      border: 1px solid var(--bot-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-time {
+      font-size: 10px; color: var(--muted);
+      padding: 0 4px;
+    }
+
+    .play-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 4px;
+      padding: 4px 10px;
+      background: rgba(200,16,46,0.1);
+      border: 1px solid rgba(200,16,46,0.25);
+      border-radius: 20px;
+      color: #f87171;
+      font-size: 11px; font-family: var(--font);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .play-btn:hover { background: rgba(200,16,46,0.2); border-color: var(--red); color: #fca5a5; }
+    .play-btn.playing { color: #fbbf24; border-color: #fbbf24; background: rgba(251,191,36,0.1); }
+
+    /* Typing indicator */
+    .typing-msg {
+      display: flex; gap: 10px; align-self: flex-start;
+      animation: fadeUp 0.3s ease forwards;
+    }
+    .typing-bubble {
+      background: var(--bot-bubble);
+      border: 1px solid var(--bot-border);
+      border-radius: 14px; border-bottom-left-radius: 4px;
+      padding: 14px 18px;
+      display: flex; gap: 5px; align-items: center;
+    }
+    .typing-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--red);
+      animation: typing-bounce 1.2s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-bounce {
+      0%,60%,100% { transform:translateY(0); opacity:0.5; }
+      30% { transform:translateY(-6px); opacity:1; }
+    }
+
+    /* Input area */
+    .input-area {
+      padding: 16px 20px;
+      background: rgba(13,13,15,0.9);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .input-row {
+      display: flex; gap: 10px; align-items: center;
+    }
+
+    #textInput {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+      min-height: 46px;
+      max-height: 100px;
+    }
+    #textInput:focus { border-color: rgba(200,16,46,0.5); }
+    #textInput::placeholder { color: var(--muted); }
+
+    .send-btn {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border: none; border-radius: 12px;
+      color: white; font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 0 15px var(--red-glow);
+      flex-shrink: 0;
+    }
+    .send-btn:hover { transform:scale(1.05); box-shadow: 0 0 22px var(--red-glow); }
+    .send-btn:active { transform:scale(0.97); }
+
+    /* Mic button */
+    .mic-row { display: flex; justify-content: center; align-items: center; gap: 16px; }
+
+    #micBtn {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.25s;
+      position: relative;
+    }
+    #micBtn:hover { border-color: var(--red); color: var(--text); }
+    #micBtn.listening {
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border-color: var(--red);
+      color: white;
+      box-shadow: 0 0 0 8px var(--red-glow), 0 0 30px var(--red-glow);
+      animation: mic-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes mic-pulse {
+      0%,100% { box-shadow: 0 0 0 8px var(--red-glow), 0 0 30px var(--red-glow); }
+      50%      { box-shadow: 0 0 0 16px rgba(200,16,46,0.08), 0 0 40px var(--red-glow); }
+    }
+
+    .mic-label {
+      font-size: 12px; color: var(--muted);
+      text-align: center; min-width: 90px;
+    }
+    .mic-label.listening { color: #f87171; }
+
+    .lang-toggle {
+      display: flex; gap: 6px;
+    }
+    .lang-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.2s;
+    }
+    .lang-pill.active {
+      background: var(--surface2);
+      border-color: var(--red);
+      color: var(--text);
+    }
+
+    /* Welcome message */
+    .welcome {
+      text-align: center;
+      padding: 40px 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .welcome-icon { font-size: 48px; }
+    .welcome h2 { font-size: 20px; font-weight: 700; }
+    .welcome p { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 320px; }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .msg { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🎤</div>
+    <div class="logo-text">
+      <h1>VoiceBot</h1>
+      <span>Hindi + Telugu AI Assistant</span>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span>Online</span>
+  </div>
+</header>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h3>Try saying...</h3>
+
+    <div class="tip-card">
+      <span class="tip-phrase">"Namaste, mera naam Raju hai"</span>
+      <span class="lang-tag lang-hi">Hindi</span>
+    </div>
+    <div class="tip-card">
+      <span class="tip-phrase">"Naa peru Priya, demo kavali"</span>
+      <span class="lang-tag lang-te">Telugu</span>
+    </div>
+    <div class="tip-card">
+      <span class="tip-phrase">"Mujhe software demo chahiye"</span>
+      <span class="lang-tag lang-mix">Mix</span>
+    </div>
+    <div class="tip-card">
+      <span class="tip-phrase">"Help chahiye, pricing kya hai?"</span>
+      <span class="lang-tag lang-mix">Mix</span>
+    </div>
+    <div class="tip-card">
+      <span class="tip-phrase">"Contact details do, appointment book karo"</span>
+      <span class="lang-tag lang-hi">Hindi</span>
+    </div>
+
+    <h3 style="margin-top:8px;">Conversation Logs</h3>
+    <div class="logs-section">
+      <a href="/logs/download/json" class="log-btn" target="_blank">
+        <span class="icon">📄</span> Download JSON
+      </a>
+      <a href="/logs/download/txt" class="log-btn" target="_blank">
+        <span class="icon">📝</span> Download TXT
+      </a>
+      <button class="log-btn" id="clearLogsBtn">
+        <span class="icon">🗑️</span> Clear History
+      </button>
+    </div>
+  </aside>
+
+  <!-- Chat Area -->
+  <div class="chat-area">
+    <!-- Live Transcript -->
+    <div class="transcript-bar">
+      <span class="transcript-label">🎙 Live</span>
+      <span id="liveTranscript">Press the mic to start speaking...</span>
+    </div>
+
+    <!-- Messages -->
+    <div id="messagesContainer">
+      <div class="welcome">
+        <div class="welcome-icon">🤖</div>
+        <h2>Namaste! नमस्ते! నమస్తే!</h2>
+        <p>I understand Hindi, Telugu and mixed conversations. Speak or type to get started!</p>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <!-- Mic Row -->
+      <div class="mic-row">
+        <div class="lang-toggle">
+          <button class="lang-pill active" data-lang="hi-IN" id="langHi">हिंदी</button>
+          <button class="lang-pill" data-lang="te-IN" id="langTe">తెలుగు</button>
+        </div>
+        <button id="micBtn" title="Start/Stop Microphone">🎤</button>
+        <span class="mic-label" id="micLabel">Tap to speak</span>
+      </div>
+
+      <!-- Text Input Row -->
+      <div class="input-row">
+        <textarea id="textInput" placeholder="Ya type karein... (Or type here...)" rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" title="Send">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ——— State ———
+  let isListening = false;
+  let recognition = null;
+  let currentLang = 'hi-IN';
+  const API = window.location.origin; // same origin (Flask serves both)
+
+  // ——— Elements ———
+  const micBtn = document.getElementById('micBtn');
+  const micLabel = document.getElementById('micLabel');
+  const liveTranscript = document.getElementById('liveTranscript');
+  const messagesContainer = document.getElementById('messagesContainer');
+  const textInput = document.getElementById('textInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const clearLogsBtn = document.getElementById('clearLogsBtn');
+
+  // ——— Speech Recognition Setup ———
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognitionSupported = !!SpeechRecognition;
+
+  if (recognitionSupported) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = currentLang;
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('listening');
+      micLabel.textContent = 'Listening...';
+      micLabel.classList.add('listening');
+      liveTranscript.textContent = '...';
+      liveTranscript.classList.add('active');
+    };
+
+    recognition.onresult = (e) => {
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      liveTranscript.textContent = final || interim || '...';
+      if (final) {
+        textInput.value = final;
+        stopListening();
+        sendMessage(final);
+      }
+    };
+
+    recognition.onerror = (e) => {
+      console.warn('Speech error:', e.error);
+      stopListening();
+      liveTranscript.textContent = `Error: ${e.error}. Try typing instead.`;
+    };
+
+    recognition.onend = () => { stopListening(); };
+  }
+
+  function stopListening() {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micLabel.textContent = 'Tap to speak';
+    micLabel.classList.remove('listening');
+    liveTranscript.classList.remove('active');
+  }
+
+  // ——— Mic Button ———
+  micBtn.addEventListener('click', () => {
+    if (!recognitionSupported) {
+      alert('Speech Recognition is not supported in your browser. Please use Chrome or Edge.');
+      return;
+    }
+    if (isListening) {
+      recognition.stop();
+      stopListening();
+    } else {
+      recognition.lang = currentLang;
+      recognition.start();
+    }
+  });
+
+  // ——— Language toggle ———
+  document.querySelectorAll('.lang-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lang-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLang = btn.dataset.lang;
+      if (recognition) recognition.lang = currentLang;
+    });
+  });
+
+  // ——— Send Message ———
+  sendBtn.addEventListener('click', () => {
+    const text = textInput.value.trim();
+    if (text) { sendMessage(text); textInput.value = ''; }
+  });
+
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const text = textInput.value.trim();
+      if (text) { sendMessage(text); textInput.value = ''; }
+    }
+  });
+
+  // Auto-resize textarea
+  textInput.addEventListener('input', () => {
+    textInput.style.height = 'auto';
+    textInput.style.height = Math.min(textInput.scrollHeight, 100) + 'px';
+  });
+
+  async function sendMessage(text) {
+    // Remove welcome screen
+    const welcome = messagesContainer.querySelector('.welcome');
+    if (welcome) welcome.remove();
+
+    appendMessage('user', text);
+    liveTranscript.textContent = text;
+
+    // Show typing indicator
+    const typingEl = showTyping();
+
+    try {
+      const res = await fetch(`${API}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      typingEl.remove();
+      appendMessage('bot', data.response, true);
+    } catch (err) {
+      typingEl.remove();
+      appendMessage('bot', 'Server se connect nahi ho pa raha. Please check karo ki backend chal raha hai! / Server connect avvaledu, backend check cheyyandi.', true);
+    }
+  }
+
+  function appendMessage(role, text, withPlay = false) {
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    body.appendChild(bubble);
+    body.appendChild(time);
+
+    if (withPlay) {
+      const playBtn = document.createElement('button');
+      playBtn.className = 'play-btn';
+      playBtn.innerHTML = '▶ Play Response';
+      playBtn.addEventListener('click', () => speakText(text, playBtn));
+      body.appendChild(playBtn);
+      // Auto-play bot response
+      setTimeout(() => speakText(text, playBtn), 400);
+    }
+
+    div.appendChild(avatar);
+    div.appendChild(body);
+    messagesContainer.appendChild(div);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'typing-msg';
+    div.innerHTML = `
+      <div class="msg-avatar" style="background:linear-gradient(135deg,var(--red),var(--red-dark));box-shadow:0 0 12px var(--red-glow)">🤖</div>
+      <div class="typing-bubble">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>`;
+    messagesContainer.appendChild(div);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return div;
+  }
+
+  // ——— Text to Speech ———
+  function speakText(text, btn) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    // Pick a Hindi voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const hiVoice = voices.find(v => v.lang.startsWith('hi')) ||
+                    voices.find(v => v.lang.startsWith('te')) ||
+                    voices.find(v => v.lang.includes('IN')) ||
+                    null;
+    if (hiVoice) utterance.voice = hiVoice;
+    utterance.lang = currentLang;
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    if (btn) {
+      btn.classList.add('playing');
+      btn.innerHTML = '⏸ Speaking...';
+      utterance.onend = () => {
+        btn.classList.remove('playing');
+        btn.innerHTML = '▶ Play Response';
+      };
+    }
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Load voices (some browsers need this)
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+  // ——— Clear Logs ———
+  clearLogsBtn.addEventListener('click', async () => {
+    if (!confirm('Sab conversation logs clear kar dein? / Anni logs delete cheyyadama?')) return;
+    await fetch(`${API}/logs/clear`, { method: 'POST' });
+    messagesContainer.innerHTML = `
+      <div class="welcome">
+        <div class="welcome-icon">🤖</div>
+        <h2>Namaste! नमस्ते! నమస్తే!</h2>
+        <p>Logs cleared. Start a new conversation!</p>
+      </div>`;
+  });
+</script>
+</body>
+</html>
